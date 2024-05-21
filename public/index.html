@@ -198,6 +198,10 @@
                     <button id="stand" onclick="stand()">Rester</button>
                     <button id="double" onclick="double()">Doubler</button>
                 `;
+            } else {
+                playerDiv.querySelectorAll('button').forEach(button => {
+                    button.style.display = 'none';
+                });
             }
 
             playersDiv.appendChild(playerDiv);
@@ -219,10 +223,16 @@
     socket.on('highlightPlayer', (playerId) => {
         document.querySelectorAll('.player').forEach(playerDiv => {
             playerDiv.classList.remove('active');
+            playerDiv.querySelectorAll('button').forEach(button => {
+                button.style.display = 'none';
+            });
         });
         const playerDiv = document.getElementById(`player_${playerId}`);
         if (playerDiv) {
             playerDiv.classList.add('active');
+            playerDiv.querySelectorAll('button').forEach(button => {
+                button.style.display = 'inline-block';
+            });
         }
     });
 
