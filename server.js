@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
 
     socket.on('hit', () => {
         const player = players.find(p => p.id === socket.id);
-        if (player) {
+        if (player && players[currentPlayerIndex].id === socket.id) {
             player.hand.push(deck.pop());
             player.score = calculateScore(player.hand);
             io.emit('updatePlayer', player);
@@ -143,13 +143,15 @@ io.on('connection', (socket) => {
     });
 
     socket.on('stand', () => {
-        console.log(`Player ${players[currentPlayerIndex].name} stands`);
-        nextPlayerTurn();
+        if (players[currentPlayerIndex].id === socket.id) {
+            console.log(`Player ${players[currentPlayerIndex].name} stands`);
+            nextPlayerTurn();
+        }
     });
 
     socket.on('double', () => {
         const player = players.find(p => p.id === socket.id);
-        if (player && player.balance >= player.bet) {
+        if (player && player.balance >= player.bet && players[currentPlayerIndex].id === socket.id) {
             player.balance -= player.bet;
             player.bet *= 2;
             player.hand.push(deck.pop());

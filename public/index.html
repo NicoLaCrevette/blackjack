@@ -216,7 +216,6 @@
     socket.on('updatePlayer', (player) => {
         const playerDiv = document.getElementById(`player_${player.id}`);
         if (playerDiv) {
-            const score = calculateScore(player.hand);
             const handDiv = playerDiv.querySelector('.hand');
             handDiv.innerHTML = '';
             player.hand.forEach(card => {
@@ -272,6 +271,7 @@
         });
         document.getElementById('game').classList.add('hidden');
         document.getElementById('betting').classList.remove('hidden');
+        document.getElementById('setup').classList.remove('hidden'); // Reset the setup view for new game
         dingSound.play();
     });
 
