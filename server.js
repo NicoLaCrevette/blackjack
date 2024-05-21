@@ -102,7 +102,7 @@ io.on('connection', (socket) => {
             dealer.score = calculateScore(dealer.hand);
             io.emit('dealCards', players, dealer);
         } else {
-            socket.emit('error', 'All players must place a bet to start the round');
+            io.emit('error', 'All players must place a bet to start the round');
         }
     });
 
