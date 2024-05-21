@@ -271,19 +271,21 @@
         });
         document.getElementById('game').classList.add('hidden');
         document.getElementById('betting').classList.remove('hidden');
-        document.getElementById('setup').classList.remove('hidden'); // Reset the setup view for new game
         dingSound.play();
     });
 
     function hit() {
+        console.log('Hit button clicked');
         socket.emit('hit');
     }
 
     function stand() {
+        console.log('Stand button clicked');
         socket.emit('stand');
     }
 
     function double() {
+        console.log('Double button clicked');
         socket.emit('double');
     }
 

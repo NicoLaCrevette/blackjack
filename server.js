@@ -170,9 +170,11 @@ io.on('connection', (socket) => {
     });
 
     function dealerTurn() {
+        console.log('Dealer turn starts');
         while (dealer.score < 17) {
             dealer.hand.push(deck.pop());
             dealer.score = calculateScore(dealer.hand);
+            console.log(`Dealer draws a card. Score: ${dealer.score}`);
         }
         dealer.hidden = false;
         io.emit('dealerTurn', dealer);
