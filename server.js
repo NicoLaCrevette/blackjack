@@ -132,12 +132,33 @@ io.on('connection', (socket) => {
                 player.result = 'lose';
                 io.emit('playerBust', player);
                 nextPlayerTurn();
+            } else {
+                io.to(socket.id).emit('yourTurn');
             }
         }
     });
 
     socket.on('stand', () => {
         nextPlayerTurn();
+    });
+
+    socket.on('double', () => {
+        const player = players.find(p => p.id === socket.id);
+        if (player && player.balance >= player.bet) {
+            player.bet *= 2;
+            player.balance -= player.bet;
+            player.hand.push(deck.pop());
+            player.score = calculateScore(player.hand);
+            player.doubled = true;
+            io.emit('updatePlayer', player);
+            if (player.score > 21) {
+                player.result = 'lose';
+                io.emit('playerBust', player);
+            }
+            nextPlayerTurn();
+        } else {
+            io.to(socket.id).emit('error', 'Not enough balance to double the bet');
+        }
     });
 
     function dealerTurn() {

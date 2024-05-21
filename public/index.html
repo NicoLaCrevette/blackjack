@@ -187,11 +187,13 @@
             });
             playerDiv.appendChild(handDiv);
 
+            playerDiv.id = `player_${player.id}`;
+
             if (player.id === socket.id) {
                 playerDiv.innerHTML += `
-                    <button onclick="hit()">Tirer</button>
-                    <button onclick="stand()">Rester</button>
-                    <button id="double" onclick="double()" ${player.doubled ? 'disabled' : ''}>Doubler</button>
+                    <button id="hit" onclick="hit()">Tirer</button>
+                    <button id="stand" onclick="stand()">Rester</button>
+                    <button id="double" onclick="double()">Doubler</button>
                 `;
             }
 
@@ -201,8 +203,14 @@
 
     socket.on('yourTurn', () => {
         document.querySelectorAll('.player button').forEach(button => {
-            button.disabled = false;
+            button.disabled = true;
         });
+        const playerDiv = document.getElementById(`player_${socket.id}`);
+        if (playerDiv) {
+            playerDiv.querySelectorAll('button').forEach(button => {
+                button.disabled = false;
+            });
+        }
     });
 
     socket.on('updatePlayer', (player) => {
@@ -227,12 +235,12 @@
     });
 
     socket.on('nextPlayer', (nextPlayerId) => {
-        playerId = nextPlayerId;
         document.querySelectorAll('.player button').forEach(button => {
             button.disabled = true;
         });
-        if (playerId === socket.id) {
-            document.querySelectorAll('.player button').forEach(button => {
+        const nextPlayerDiv = document.getElementById(`player_${nextPlayerId}`);
+        if (nextPlayerDiv) {
+            nextPlayerDiv.querySelectorAll('button').forEach(button => {
                 button.disabled = false;
             });
         }
