@@ -282,11 +282,17 @@
     function stand() {
         console.log('Stand button clicked');
         socket.emit('stand');
+        document.querySelectorAll('.player button').forEach(button => {
+            button.disabled = true;
+        });
     }
 
     function double() {
         console.log('Double button clicked');
         socket.emit('double');
+        document.querySelectorAll('.player button').forEach(button => {
+            button.disabled = true;
+        });
     }
 
     function adjustVolume(value) {
