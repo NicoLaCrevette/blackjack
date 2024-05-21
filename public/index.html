@@ -123,14 +123,22 @@
         const bettingPlayersDiv = document.getElementById('bettingPlayers');
         bettingPlayersDiv.innerHTML = '';
         players.forEach(player => {
-            bettingPlayersDiv.innerHTML += `
-                <div>
-                    <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
-                    <label for="bet_${player.id}">Mise (€) :</label>
-                    <input type="number" id="bet_${player.id}" min="1" max="${player.balance}">
-                    <button onclick="placeBet(${player.id})">Placer la mise</button>
-                </div>
-            `;
+            if (player.id === socket.id) {
+                bettingPlayersDiv.innerHTML += `
+                    <div>
+                        <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
+                        <label for="bet_${player.id}">Mise (€) :</label>
+                        <input type="number" id="bet_${player.id}" min="1" max="${player.balance}">
+                        <button onclick="placeBet(${player.id})">Placer la mise</button>
+                    </div>
+                `;
+            } else {
+                bettingPlayersDiv.innerHTML += `
+                    <div>
+                        <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
+                    </div>
+                `;
+            }
         });
     });
 

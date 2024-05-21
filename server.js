@@ -56,6 +56,11 @@ function calculateScore(hand) {
 
 io.on('connection', (socket) => {
     socket.on('joinGame', (playerName, initialAmount) => {
+        if (players.find(p => p.id === socket.id)) {
+            socket.emit('error', 'You have already joined the game.');
+            return;
+        }
+        
         const player = {
             id: socket.id,
             name: playerName,
@@ -78,6 +83,7 @@ io.on('connection', (socket) => {
             player.bet = betAmount;
             player.balance -= betAmount;
             io.to(socket.id).emit('betPlaced', player);
+            io.emit('updatePlayers', players);
         } else {
             io.to(socket.id).emit('error', 'Invalid bet amount');
         }
@@ -94,7 +100,7 @@ io.on('connection', (socket) => {
             dealer.score = calculateScore(dealer.hand);
             io.emit('dealCards', players, dealer);
         } else {
-            io.to(socket.id).emit('error', 'All players must place a bet to start the round');
+            socket.emit('error', 'All players must place a bet to start the round');
         }
     });
 
