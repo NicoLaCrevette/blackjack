@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
             socket.emit('error', 'You have already joined the game.');
             return;
         }
-        
+
         const player = {
             id: socket.id,
             name: playerName,
@@ -71,7 +71,8 @@ io.on('connection', (socket) => {
             score: 0,
             balance: initialAmount,
             bet: 0,
-            result: ''
+            result: '',
+            hasBet: false
         };
         players.push(player);
         io.emit('updatePlayers', players);
@@ -79,9 +80,10 @@ io.on('connection', (socket) => {
 
     socket.on('placeBet', (betAmount) => {
         const player = players.find(p => p.id === socket.id);
-        if (player && betAmount <= player.balance) {
+        if (player && betAmount <= player.balance && betAmount > 0) {
             player.bet = betAmount;
             player.balance -= betAmount;
+            player.hasBet = true;
             io.to(socket.id).emit('betPlaced', player);
             io.emit('updatePlayers', players);
         } else {
@@ -90,7 +92,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('startRound', () => {
-        if (players.every(player => player.bet > 0)) {
+        if (players.every(player => player.hasBet)) {
             initializeDeck();
             players.forEach(player => {
                 player.hand = [deck.pop(), deck.pop()];
@@ -154,6 +156,7 @@ io.on('connection', (socket) => {
         });
         players.forEach(player => {
             player.bet = 0; // Reset the bet for the next round
+            player.hasBet = false; // Reset the bet status for the next round
         });
         io.emit('updatePlayers', players);
     }

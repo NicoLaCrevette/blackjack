@@ -54,6 +54,9 @@
         .tie {
             color: gray;
         }
+        .ready {
+            color: yellow;
+        }
         button {
             margin: 10px;
             padding: 10px 20px;
@@ -130,12 +133,14 @@
                         <label for="bet_${player.id}">Mise (€) :</label>
                         <input type="number" id="bet_${player.id}" min="1" max="${player.balance}">
                         <button onclick="placeBet(${player.id})">Placer la mise</button>
+                        <span id="bet_status_${player.id}">${player.hasBet ? 'Prêt' : ''}</span>
                     </div>
                 `;
             } else {
                 bettingPlayersDiv.innerHTML += `
                     <div>
                         <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
+                        <span id="bet_status_${player.id}">${player.hasBet ? 'Prêt' : ''}</span>
                     </div>
                 `;
             }
@@ -149,6 +154,7 @@
 
     socket.on('betPlaced', (player) => {
         document.getElementById(`balance_${player.id}`).innerText = player.balance;
+        document.getElementById(`bet_status_${player.id}`).innerText = 'Prêt';
     });
 
     socket.on('error', (message) => {
