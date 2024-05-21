@@ -143,7 +143,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('stand', () => {
-        if (players[currentPlayerIndex].id === socket.id) {
+        const player = players.find(p => p.id === socket.id);
+        if (player && players[currentPlayerIndex].id === socket.id) {
             console.log(`Player ${players[currentPlayerIndex].name} stands`);
             nextPlayerTurn();
         }
