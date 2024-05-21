@@ -12,6 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 let players = [];
 let deck = [];
 let dealer = { hand: [], score: 0, hidden: true };
+let currentPlayerIndex = 0;
 
 function initializeDeck() {
     const suits = ['c', 'd', 'h', 's'];
@@ -55,6 +56,15 @@ function calculateScore(hand) {
     }
 
     return score;
+}
+
+function nextPlayerTurn() {
+    currentPlayerIndex++;
+    if (currentPlayerIndex < players.length) {
+        io.to(players[currentPlayerIndex].id).emit('yourTurn');
+    } else {
+        dealerTurn();
+    }
 }
 
 io.on('connection', (socket) => {
@@ -104,7 +114,9 @@ io.on('connection', (socket) => {
             dealer.hand = [deck.pop(), deck.pop()];
             dealer.score = calculateScore(dealer.hand);
             dealer.hidden = true;
+            currentPlayerIndex = 0;
             io.emit('dealCards', players, dealer);
+            io.to(players[currentPlayerIndex].id).emit('yourTurn');
         } else {
             io.emit('error', 'All players must place a bet to start the round');
         }
@@ -115,21 +127,17 @@ io.on('connection', (socket) => {
         if (player) {
             player.hand.push(deck.pop());
             player.score = calculateScore(player.hand);
-            io.to(socket.id).emit('updatePlayer', player);
+            io.emit('updatePlayer', player);
             if (player.score > 21) {
                 player.result = 'lose';
-                io.to(socket.id).emit('playerBust', player);
+                io.emit('playerBust', player);
+                nextPlayerTurn();
             }
         }
     });
 
     socket.on('stand', () => {
-        const playerIndex = players.findIndex(p => p.id === socket.id);
-        if (playerIndex >= 0 && playerIndex < players.length - 1) {
-            io.to(players[playerIndex + 1].id).emit('yourTurn');
-        } else {
-            dealerTurn();
-        }
+        nextPlayerTurn();
     });
 
     function dealerTurn() {
@@ -175,5 +183,3 @@ io.on('connection', (socket) => {
 server.listen(process.env.PORT || 3000, () => {
     console.log('Server is running');
 });
-
-app.use(express.static(path.join(__dirname, 'public')));

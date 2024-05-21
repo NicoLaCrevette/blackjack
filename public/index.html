@@ -199,6 +199,12 @@
         });
     });
 
+    socket.on('yourTurn', () => {
+        document.querySelectorAll('.player button').forEach(button => {
+            button.disabled = false;
+        });
+    });
+
     socket.on('updatePlayer', (player) => {
         const playerDiv = document.getElementById(`player_${player.id}`);
         if (playerDiv) {
@@ -222,7 +228,14 @@
 
     socket.on('nextPlayer', (nextPlayerId) => {
         playerId = nextPlayerId;
-        // Update UI to highlight the current player
+        document.querySelectorAll('.player button').forEach(button => {
+            button.disabled = true;
+        });
+        if (playerId === socket.id) {
+            document.querySelectorAll('.player button').forEach(button => {
+                button.disabled = false;
+            });
+        }
     });
 
     socket.on('dealerTurn', (dealer) => {
