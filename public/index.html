@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blackjack Multijoueur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #006400;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #setup, #betting, #game {
+            margin: 20px;
+        }
+        .card {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid black;
+            border-radius: 8px;
+            background-color: white;
+            color: black;
+            width: 80px;
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+        }
+        .hidden-card {
+            background-image: url('images/back_of_card.gif');
+        }
+        .player, .dealer {
+            margin: 20px;
+            padding: 20px;
+            background-color: #228B22;
+            border-radius: 10px;
+            position: relative;
+        }
+        .result {
+            position: absolute;
+            left: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .win {
+            color: green;
+        }
+        .lose {
+            color: red;
+        }
+        .tie {
+            color: gray;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FFD700;
+            color: black;
+            font-size: 16px;
+        }
+        #volume-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Blackjack</h1>
+<div id="setup">
+    <label for="playerName">Prénom :</label>
+    <input type="text" id="playerName">
+    <label for="initialAmount">Montant initial (€) :</label>
+    <input type="number" id="initialAmount" min="1">
+    <button onclick="joinGame()">Rejoindre le jeu</button>
+</div>
+
+<div id="betting" class="hidden">
+    <h2>Placez vos mises</h2>
+    <div id="bettingPlayers"></div>
+    <button onclick="startRound()">Commencer la manche</button>
+</div>
+
+<div id="game" class="hidden">
+    <div id
+<div id="dealer" class="dealer"></div>
+    <div id="players"></div>
+</div>
+
+<div id="volume-control">
+    <label for="volume">Volume:</label>
+    <input type="range" id="volume" name="volume" min="0" max="100" value="50" oninput="adjustVolume(this.value)">
+</div>
+
+<audio id="background-music" loop autoplay>
+    <source src="caca.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+<audio id="ding-sound">
+    <source src="ding.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let playerId;
+
+    function joinGame() {
+        const playerName = document.getElementById('playerName').value;
+        const initialAmount = parseInt(document.getElementById('initialAmount').value);
+        socket.emit('joinGame', playerName, initialAmount);
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('betting').classList.remove('hidden');
+    }
+
+    socket.on('updatePlayers', (players) => {
+        const bettingPlayersDiv = document.getElementById('bettingPlayers');
+        bettingPlayersDiv.innerHTML = '';
+        players.forEach(player => {
+            bettingPlayersDiv.innerHTML += `
+                <div>
+                    <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
+                    <label for="bet_${player.id}">Mise (€) :</label>
+                    <input type="number" id="bet_${player.id}" min="1" max="${player.balance}">
+                </div>
+            `;
+        });
+    });
+
+    function startRound() {
+        players.forEach(player => {
+            const betAmount = parseInt(document.getElementById(`bet_${player.id}`).value);
+            player.bet = betAmount;
+            player.balance -= betAmount;
+            document.getElementById(`balance_${player.id}`).innerText = player.balance;
+        });
+        socket.emit('startRound');
+        document.getElementById('betting').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+    }
+
+    socket.on('dealCards', (players, dealer) => {
+        const dealerDiv = document.getElementById('dealer');
+        dealerDiv.innerHTML = `<h2>Croupier - Score: ${dealer.hidden ? '?' : dealer.score}</h2>`;
+        const handDiv = document.createElement('div');
+        handDiv.classList.add('hand');
+        dealer.hand.forEach((card, index) => {
+            if (index === 1 && dealer.hidden) {
+                handDiv.innerHTML += `<div class="card hidden-card"></div>`;
+            } else {
+                handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
+            }
+        });
+        dealerDiv.appendChild(handDiv);
+
+        const playersDiv = document.getElementById('players');
+        playersDiv.innerHTML = '';
+        players.forEach((player, index) => {
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player');
+            playerDiv.innerHTML += `<h2>${player.name} - Score: ${player.score} - Mise: €${player.bet} <span id="result_${index}">${player.result}</span></h2>`;
+            const handDiv = document.createElement('div');
+            handDiv.classList.add('hand');
+            player.hand.forEach(card => {
+                handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
+            });
+            playerDiv.appendChild(handDiv);
+
+            if (index === currentPlayer) {
+                playerDiv.innerHTML += `
+                    <button onclick="hit(${index})">Tirer</button>
+                    <button onclick="stand(${index})">Rester</button>
+                    <button id="double_${index}" onclick="double(${index})" ${player.doubled ? 'disabled' : ''}>Doubler</button>
+                `;
+            }
+
+            playersDiv.appendChild(playerDiv);
+        });
+    });
+
+    socket.on('updatePlayer', (player) => {
+        const playerDiv = document.getElementById(`player_${player.id}`);
+        if (playerDiv) {
+            const score = calculateScore(player.hand);
+            const handDiv = playerDiv.querySelector('.hand');
+            handDiv.innerHTML = '';
+            player.hand.forEach(card => {
+                handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
+            });
+            playerDiv.querySelector('h2').innerText = `${player.name} - Score: ${score} - Mise: €${player.bet}`;
+        }
+    });
+
+    socket.on('playerBust', (player) => {
+        const playerDiv = document.getElementById(`player_${player.id}`);
+        if (playerDiv) {
+            playerDiv.querySelector('#result_' + player.id).innerText = 'Perdu';
+            playerDiv.querySelector('#result_' + player.id).classList.add('lose');
+        }
+    });
+
+    socket.on('nextPlayer', (nextPlayerId) => {
+        playerId = nextPlayerId;
+        // Update UI to highlight the current player
+    });
+
+    socket.on('dealerTurn', (dealer) => {
+        const dealerDiv = document.getElementById('dealer');
+        dealerDiv.innerHTML = `<h2>Croupier - Score: ${dealer.score}</h2>`;
+        const handDiv = dealerDiv.querySelector('.hand');
+        handDiv.innerHTML = '';
+        dealer.hand.forEach(card => {
+            handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
+        });
+    });
+
+    socket.on('endRound', (players, dealer) => {
+        players.forEach((player, index) => {
+            const resultSpan = document.getElementById(`result_${index}`);
+            if (player.result === 'win') {
+                resultSpan.innerText = 'Gagné';
+                resultSpan.classList.add('win');
+            } else if (player.result === 'lose') {
+                resultSpan.innerText = 'Perdu';
+                resultSpan.classList.add('lose');
+            } else {
+                resultSpan.innerText = 'Égalité';
+                resultSpan.classList.add('tie');
+            }
+        });
+        document.getElementById('game').classList.add('hidden');
+        document.getElementById('betting').classList.remove('hidden');
+        dingSound.play();
+    });
+
+    function hit() {
+        socket.emit('hit', playerId);
+    }
+
+    function stand() {
+        socket.emit('stand', playerId);
+    }
+
+    function double() {
+        socket.emit('double', playerId);
+    }
+
+    function adjustVolume(value) {
+        document.getElementById('background-music').volume = value / 100;
+    }
+</script>
+
+</body>
+</html>
