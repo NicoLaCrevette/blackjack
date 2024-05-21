@@ -89,6 +89,7 @@ io.on('connection', (socket) => {
         };
         players.push(player);
         io.emit('updatePlayers', players);
+        console.log(`Player ${playerName} joined with initial amount ${initialAmount}`);
     });
 
     socket.on('placeBet', (betAmount) => {
@@ -99,6 +100,7 @@ io.on('connection', (socket) => {
             player.hasBet = true;
             io.to(socket.id).emit('betPlaced', player);
             io.emit('updatePlayers', players);
+            console.log(`Player ${player.name} placed a bet of ${betAmount}`);
         } else {
             io.to(socket.id).emit('error', 'Invalid bet amount');
         }
@@ -117,6 +119,7 @@ io.on('connection', (socket) => {
             currentPlayerIndex = 0;
             io.emit('dealCards', players, dealer);
             io.to(players[currentPlayerIndex].id).emit('yourTurn');
+            console.log('Round started');
         } else {
             io.emit('error', 'All players must place a bet to start the round');
         }
@@ -128,6 +131,7 @@ io.on('connection', (socket) => {
             player.hand.push(deck.pop());
             player.score = calculateScore(player.hand);
             io.emit('updatePlayer', player);
+            console.log(`Player ${player.name} hits and their score is now ${player.score}`);
             if (player.score > 21) {
                 player.result = 'lose';
                 io.emit('playerBust', player);
@@ -139,18 +143,20 @@ io.on('connection', (socket) => {
     });
 
     socket.on('stand', () => {
+        console.log(`Player ${players[currentPlayerIndex].name} stands`);
         nextPlayerTurn();
     });
 
     socket.on('double', () => {
         const player = players.find(p => p.id === socket.id);
         if (player && player.balance >= player.bet) {
-            player.bet *= 2;
             player.balance -= player.bet;
+            player.bet *= 2;
             player.hand.push(deck.pop());
             player.score = calculateScore(player.hand);
             player.doubled = true;
             io.emit('updatePlayer', player);
+            console.log(`Player ${player.name} doubles their bet and their score is now ${player.score}`);
             if (player.score > 21) {
                 player.result = 'lose';
                 io.emit('playerBust', player);
@@ -193,9 +199,14 @@ io.on('connection', (socket) => {
             player.hasBet = false; // Reset the bet status for the next round
         });
         io.emit('updatePlayers', players);
+        console.log('Round ended');
     }
 
     socket.on('disconnect', () => {
+        const player = players.find(p => p.id === socket.id);
+        if (player) {
+            console.log(`Player ${player.name} disconnected`);
+        }
         players = players.filter(player => player.id !== socket.id);
         io.emit('updatePlayers', players);
     });

@@ -222,7 +222,7 @@
             player.hand.forEach(card => {
                 handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
             });
-            playerDiv.querySelector('h2').innerText = `${player.name} - Score: ${score} - Mise: €${player.bet}`;
+            playerDiv.querySelector('h2').innerText = `${player.name} - Score: ${player.score} - Mise: €${player.bet}`;
         }
     });
 
