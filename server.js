@@ -100,6 +100,7 @@ io.on('connection', (socket) => {
             });
             dealer.hand = [deck.pop(), deck.pop()];
             dealer.score = calculateScore(dealer.hand);
+            dealer.hidden = true;
             io.emit('dealCards', players, dealer);
         } else {
             io.emit('error', 'All players must place a bet to start the round');
@@ -133,6 +134,7 @@ io.on('connection', (socket) => {
             dealer.hand.push(deck.pop());
             dealer.score = calculateScore(dealer.hand);
         }
+        dealer.hidden = false;
         io.emit('dealerTurn', dealer);
         endRound();
     }

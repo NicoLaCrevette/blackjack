@@ -158,6 +158,9 @@
     }
 
     socket.on('dealCards', (players, dealer) => {
+        document.getElementById('betting').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+        
         const dealerDiv = document.getElementById('dealer');
         dealerDiv.innerHTML = `<h2>Croupier - Score: ${dealer.hidden ? '?' : dealer.score}</h2>`;
         const handDiv = document.createElement('div');
