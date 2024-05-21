@@ -31,93 +31,6 @@ function shuffle(array) {
     return array;
 }
 
-io.on('connection', (socket) => {
-    socket.on('joinGame', (playerName, initialAmount) => {
-        const player = {
-            id: socket.id,
-            name: playerName,
-            hand: [],
-            doubled: false,
-            split: false,
-            splitHand: [],
-            score: 0,
-            balance: initialAmount,
-            bet: 0,
-            result: ''
-        };
-        players.push(player);
-        io.emit('updatePlayers', players);
-    });
-
-    socket.on('startRound', () => {
-        initializeDeck();
-        players.forEach(player => {
-            player.hand = [deck.pop(), deck.pop()];
-            player.score = calculateScore(player.hand);
-        });
-        dealer.hand = [deck.pop(), deck.pop()];
-        dealer.score = calculateScore(dealer.hand);
-        io.emit('dealCards', players, dealer);
-    });
-
-    socket.on('hit', (playerId) => {
-        const player = players.find(p => p.id === playerId);
-        player.hand.push(deck.pop());
-        player.score = calculateScore(player.hand);
-        io.emit('updatePlayer', player);
-        if (player.score > 21) {
-            player.result = 'lose';
-            io.emit('playerBust', player);
-        }
-    });
-
-    socket.on('stand', (playerId) => {
-        const playerIndex = players.findIndex(p => p.id === playerId);
-        if (playerIndex >= 0 && playerIndex < players.length - 1) {
-            io.emit('nextPlayer', players[playerIndex + 1].id);
-        } else {
-            dealerTurn();
-        }
-    });
-
-    function dealerTurn() {
-        while (dealer.score < 17) {
-            dealer.hand.push(deck.pop());
-            dealer.score = calculateScore(dealer.hand);
-        }
-        io.emit('dealerTurn', dealer);
-        endRound();
-    }
-
-    function endRound() {
-        players.forEach(player => {
-            if (player.score > 21) {
-                player.result = 'lose';
-            } else if (dealer.score > 21 || player.score > dealer.score) {
-                player.result = 'win';
-                player.balance += player.bet * 2;
-            } else if (player.score < dealer.score) {
-                player.result = 'lose';
-            } else {
-                player.result = 'tie';
-                player.balance += player.bet;
-            }
-        });
-        io.emit('endRound', players, dealer);
-    }
-
-    socket.on('disconnect', () => {
-        players = players.filter(player => player.id !== socket.id);
-        io.emit('updatePlayers', players);
-    });
-});
-
-server.listen(process.env.PORT || 3000, () => {
-    console.log('Server is running');
-});
-
-app.use(express.static('public'));
-
 function calculateScore(hand) {
     let score = 0;
     let aces = 0;
@@ -140,3 +53,113 @@ function calculateScore(hand) {
 
     return score;
 }
+
+io.on('connection', (socket) => {
+    socket.on('joinGame', (playerName, initialAmount) => {
+        const player = {
+            id: socket.id,
+            name: playerName,
+            hand: [],
+            doubled: false,
+            split: false,
+            splitHand: [],
+            score: 0,
+            balance: initialAmount,
+            bet: 0,
+            result: ''
+        };
+        players.push(player);
+        io.emit('updatePlayers', players);
+    });
+
+    socket.on('placeBet', (betAmount) => {
+        const player = players.find(p => p.id === socket.id);
+        if (player && betAmount <= player.balance) {
+            player.bet = betAmount;
+            player.balance -= betAmount;
+            io.to(socket.id).emit('betPlaced', player);
+        } else {
+            io.to(socket.id).emit('error', 'Invalid bet amount');
+        }
+    });
+
+    socket.on('startRound', () => {
+        if (players.every(player => player.bet > 0)) {
+            initializeDeck();
+            players.forEach(player => {
+                player.hand = [deck.pop(), deck.pop()];
+                player.score = calculateScore(player.hand);
+            });
+            dealer.hand = [deck.pop(), deck.pop()];
+            dealer.score = calculateScore(dealer.hand);
+            io.emit('dealCards', players, dealer);
+        } else {
+            io.to(socket.id).emit('error', 'All players must place a bet to start the round');
+        }
+    });
+
+    socket.on('hit', () => {
+        const player = players.find(p => p.id === socket.id);
+        if (player) {
+            player.hand.push(deck.pop());
+            player.score = calculateScore(player.hand);
+            io.emit('updatePlayer', player);
+            if (player.score > 21) {
+                player.result = 'lose';
+                io.emit('playerBust', player);
+            }
+        }
+    });
+
+    socket.on('stand', () => {
+        const playerIndex = players.findIndex(p => p.id === socket.id);
+        if (playerIndex >= 0 && playerIndex < players.length - 1) {
+            io.to(players[playerIndex + 1].id).emit('yourTurn');
+        } else {
+            dealerTurn();
+        }
+    });
+
+    function dealerTurn() {
+        while (dealer.score < 17) {
+            dealer.hand.push(deck.pop());
+            dealer.score = calculateScore(dealer.hand);
+        }
+        io.emit('dealerTurn', dealer);
+        endRound();
+    }
+
+    function endRound() {
+        players.forEach(player => {
+            if (player.result !== 'win') {
+                if (player.score > 21) {
+                    player.result = 'lose';
+                } else if (dealer.score > 21 || player.score > dealer.score) {
+                    player.result = 'win';
+                    player.balance += player.bet * 2;
+                } else if (player.score < dealer.score) {
+                    player.result = 'lose';
+                } else {
+                    player.result = 'tie';
+                    player.balance += player.bet;
+                }
+            }
+            io.to(player.id).emit('roundEnd', player, dealer);
+        });
+        players.forEach(player => {
+            player.bet = 0; // Reset the bet for the next round
+        });
+        io.emit('updatePlayers', players);
+    }
+
+    socket.on('disconnect', () => {
+        players = players.filter(player => player.id !== socket.id);
+        io.emit('updatePlayers', players);
+    });
+});
+
+server.listen(process.env.PORT || 3000, () => {
+    console.log('Server is running');
+});
+
+app.use(express.static('public'));

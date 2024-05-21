@@ -88,8 +88,7 @@
 </div>
 
 <div id="game" class="hidden">
-    <div id
-<div id="dealer" class="dealer"></div>
+    <div id="dealer" class="dealer"></div>
     <div id="players"></div>
 </div>
 
@@ -129,21 +128,27 @@
                     <h3>${player.name} - Balance: €<span id="balance_${player.id}">${player.balance}</span></h3>
                     <label for="bet_${player.id}">Mise (€) :</label>
                     <input type="number" id="bet_${player.id}" min="1" max="${player.balance}">
+                    <button onclick="placeBet(${player.id})">Placer la mise</button>
                 </div>
             `;
         });
     });
 
+    function placeBet(playerId) {
+        const betAmount = parseInt(document.getElementById(`bet_${playerId}`).value);
+        socket.emit('placeBet', betAmount);
+    }
+
+    socket.on('betPlaced', (player) => {
+        document.getElementById(`balance_${player.id}`).innerText = player.balance;
+    });
+
+    socket.on('error', (message) => {
+        alert(message);
+    });
+
     function startRound() {
-        players.forEach(player => {
-            const betAmount = parseInt(document.getElementById(`bet_${player.id}`).value);
-            player.bet = betAmount;
-            player.balance -= betAmount;
-            document.getElementById(`balance_${player.id}`).innerText = player.balance;
-        });
         socket.emit('startRound');
-        document.getElementById('betting').classList.add('hidden');
-        document.getElementById('game').classList.remove('hidden');
     }
 
     socket.on('dealCards', (players, dealer) => {
