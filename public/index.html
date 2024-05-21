@@ -206,12 +206,12 @@
 
     socket.on('yourTurn', () => {
         document.querySelectorAll('.player button').forEach(button => {
-            button.disabled = true;
+            button.style.display = 'none';
         });
         const playerDiv = document.getElementById(`player_${socket.id}`);
         if (playerDiv) {
             playerDiv.querySelectorAll('button').forEach(button => {
-                button.disabled = false;
+                button.style.display = 'inline-block';
             });
         }
     });
@@ -248,12 +248,12 @@
 
     socket.on('nextPlayer', (nextPlayerId) => {
         document.querySelectorAll('.player button').forEach(button => {
-            button.disabled = true;
+            button.style.display = 'none';
         });
         const nextPlayerDiv = document.getElementById(`player_${nextPlayerId}`);
         if (nextPlayerDiv) {
             nextPlayerDiv.querySelectorAll('button').forEach(button => {
-                button.disabled = false;
+                button.style.display = 'inline-block';
             });
         }
     });
@@ -296,7 +296,7 @@
         console.log('Stand button clicked');
         socket.emit('stand');
         document.querySelectorAll('.player button').forEach(button => {
-            button.disabled = true;
+            button.style.display = 'none';
         });
     }
 
@@ -304,7 +304,7 @@
         console.log('Double button clicked');
         socket.emit('double');
         document.querySelectorAll('.player button').forEach(button => {
-            button.disabled = true;
+            button.style.display = 'none';
         });
     }
 
