@@ -11,7 +11,7 @@ let deck = [];
 let dealer = { hand: [], score: 0, hidden: true };
 
 function initializeDeck() {
-    const suits = ['h', 'd', 'c', 's'];
+    const suits = ['c', 'd', 'h', 's'];
     const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     deck = [];
 
@@ -112,10 +112,10 @@ io.on('connection', (socket) => {
         if (player) {
             player.hand.push(deck.pop());
             player.score = calculateScore(player.hand);
-            io.emit('updatePlayer', player);
+            io.to(socket.id).emit('updatePlayer', player);
             if (player.score > 21) {
                 player.result = 'lose';
-                io.emit('playerBust', player);
+                io.to(socket.id).emit('playerBust', player);
             }
         }
     });

@@ -187,11 +187,11 @@
             });
             playerDiv.appendChild(handDiv);
 
-            if (index === currentPlayer) {
+            if (player.id === socket.id) {
                 playerDiv.innerHTML += `
-                    <button onclick="hit(${index})">Tirer</button>
-                    <button onclick="stand(${index})">Rester</button>
-                    <button id="double_${index}" onclick="double(${index})" ${player.doubled ? 'disabled' : ''}>Doubler</button>
+                    <button onclick="hit()">Tirer</button>
+                    <button onclick="stand()">Rester</button>
+                    <button id="double" onclick="double()" ${player.doubled ? 'disabled' : ''}>Doubler</button>
                 `;
             }
 
@@ -255,15 +255,15 @@
     });
 
     function hit() {
-        socket.emit('hit', playerId);
+        socket.emit('hit');
     }
 
     function stand() {
-        socket.emit('stand', playerId);
+        socket.emit('stand');
     }
 
     function double() {
-        socket.emit('double', playerId);
+        socket.emit('double');
     }
 
     function adjustVolume(value) {
