@@ -7,6 +7,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+const PORT = process.env.PORT || 3000;
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 let players = [];
@@ -219,6 +221,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(process.env.PORT || 3000, () => {
-    console.log('Server is running');
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
