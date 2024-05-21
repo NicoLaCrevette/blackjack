@@ -57,6 +57,9 @@
         .ready {
             color: yellow;
         }
+        .active {
+            border: 2px solid yellow;
+        }
         button {
             margin: 10px;
             padding: 10px 20px;
@@ -210,6 +213,16 @@
             playerDiv.querySelectorAll('button').forEach(button => {
                 button.disabled = false;
             });
+        }
+    });
+
+    socket.on('highlightPlayer', (playerId) => {
+        document.querySelectorAll('.player').forEach(playerDiv => {
+            playerDiv.classList.remove('active');
+        });
+        const playerDiv = document.getElementById(`player_${playerId}`);
+        if (playerDiv) {
+            playerDiv.classList.add('active');
         }
     });
 

@@ -61,6 +61,7 @@ function calculateScore(hand) {
 function nextPlayerTurn() {
     currentPlayerIndex++;
     if (currentPlayerIndex < players.length) {
+        io.emit('highlightPlayer', players[currentPlayerIndex].id);
         io.to(players[currentPlayerIndex].id).emit('yourTurn');
     } else {
         dealerTurn();
@@ -118,6 +119,7 @@ io.on('connection', (socket) => {
             dealer.hidden = true;
             currentPlayerIndex = 0;
             io.emit('dealCards', players, dealer);
+            io.emit('highlightPlayer', players[currentPlayerIndex].id);
             io.to(players[currentPlayerIndex].id).emit('yourTurn');
             console.log('Round started');
         } else {
