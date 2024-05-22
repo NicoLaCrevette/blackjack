@@ -249,14 +249,15 @@
         updateRemainingPlayersCount();
     });
 
-    socket.on('dealerTurn', (dealer) => {
+    socket.on('dealerTurn', async (dealer) => {
         const dealerDiv = document.getElementById('dealer');
         dealerDiv.innerHTML = `<h2>Croupier - Score: ${dealer.score}</h2>`;
         const handDiv = dealerDiv.querySelector('.hand');
         handDiv.innerHTML = '';
-        dealer.hand.forEach(card => {
+        for (let card of dealer.hand) {
             handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
-        });
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
     });
 
     socket.on('endRound', (players, dealer) => {
@@ -277,7 +278,7 @@
             }
         });
         document.getElementById('remainingPlayersCount').innerText = '0';
-        dingSound.play();
+        document.getElementById('ding-sound').play();
     });
 
     socket.on('clearResults', () => {
