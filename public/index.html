@@ -76,7 +76,7 @@
         }
         #remaining-players {
             position: absolute;
-            top: 50px;
+            top: 70px;
             right: 10px;
         }
     </style>
@@ -160,6 +160,7 @@
         document.getElementById(`balance_${player.id}`).innerText = player.balance;
         document.getElementById(`bet_status_${player.id}`).innerText = 'Prêt';
         document.getElementById(`bet_status_${player.id}`).classList.add('ready');
+        updateRemainingPlayersCount();
     });
 
     socket.on('error', (message) => {
@@ -221,7 +222,7 @@
     });
 
     function updateRemainingPlayersCount() {
-        const remainingPlayers = document.querySelectorAll('#players .player').length - document.querySelectorAll('#players .player .win, #players .player .lose, #players .player .tie').length;
+        const remainingPlayers = document.querySelectorAll('#players .player button').length / 3;
         document.getElementById('remainingPlayersCount').innerText = remainingPlayers;
     }
 
@@ -244,10 +245,6 @@
             playerDiv.querySelector('#result_' + player.id).innerText = 'Perdu';
             playerDiv.querySelector('#result_' + player.id).classList.add('lose');
         }
-        updateRemainingPlayersCount();
-    });
-
-    socket.on('nextPlayer', (nextPlayerId) => {
         updateRemainingPlayersCount();
     });
 

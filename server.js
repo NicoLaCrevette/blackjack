@@ -64,6 +64,10 @@ function allPlayersDone() {
     return players.every(player => player.result !== '');
 }
 
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 io.on('connection', (socket) => {
     socket.on('joinGame', (playerName, initialAmount) => {
         if (players.find(p => p.id === socket.id)) {
@@ -177,12 +181,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    function dealerTurn() {
+    async function dealerTurn() {
         console.log('Dealer turn starts');
         while (dealer.score < 17) {
             dealer.hand.push(deck.pop());
             dealer.score = calculateScore(dealer.hand);
+            io.emit('updateDealer', dealer);
             console.log(`Dealer draws a card. Score: ${dealer.score}`);
+            await delay(2000);
         }
         dealer.hidden = false;
         io.emit('dealerTurn', dealer);
