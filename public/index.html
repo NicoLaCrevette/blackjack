@@ -256,7 +256,7 @@
         handDiv.innerHTML = '';
         for (let card of dealer.hand) {
             handDiv.innerHTML += `<div class="card" style="background-image: url('images/${card.value}${card.suit}.gif');"></div>`;
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await delay(2000);
         }
     });
 
@@ -320,6 +320,10 @@
         } else {
             music.pause();
         }
+    }
+
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 </script>
 
