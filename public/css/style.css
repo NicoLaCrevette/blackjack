@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #006400;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+#setup, #betting, #game {
+    margin: 20px;
+}
+.card {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: white;
+    color: black;
+    width: 80px;
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+}
+.hidden-card {
+    background-image: url('images/back_of_card.gif');
+}
+.player, .dealer {
+    margin: 20px;
+    padding: 20px;
+    background-color: #228B22;
+    border-radius: 10px;
+    position: relative;
+}
+.result {
+    position: absolute;
+    left: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.win {
+    color: green;
+}
+.lose {
+    color: red;
+}
+.tie {
+    color: gray;
+}
+.ready {
+    color: yellow;
+}
+.active {
+    border: 2px solid yellow;
+}
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #FFD700;
+    color: black;
+    font-size: 16px;
+}
+#volume-control {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+#remaining-players {
+    position: absolute;
+    top: 70px;
+    right: 10px;
+}
