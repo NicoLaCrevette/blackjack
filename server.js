@@ -188,6 +188,7 @@ io.on('connection', (socket) => {
         while (dealer.score < 17) {
             dealer.hand.push(deck.pop());
             dealer.score = calculateScore(dealer.hand);
+            dealer.hidden = false;
             io.emit('updateDealer', dealer);
             console.log(`Dealer draws a card. Score: ${dealer.score}`);
             await delay(2000);
@@ -233,6 +234,7 @@ io.on('connection', (socket) => {
             player.hasBet = false; // Reset the bet status for the next round
         });
         io.emit('updatePlayers', players);
+        io.emit('clearResults');
         console.log('Round ended');
     }
 

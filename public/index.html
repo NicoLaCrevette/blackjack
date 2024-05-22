@@ -194,7 +194,7 @@
         players.forEach((player, index) => {
             const playerDiv = document.createElement('div');
             playerDiv.classList.add('player');
-            playerDiv.innerHTML += `<h2>${player.name} - Score: ${player.score} - Mise: €${player.bet} <span id="result_${index}">${player.result}</span></h2>`;
+            playerDiv.innerHTML += `<h2>${player.name} - Score: ${player.score} - Mise: €${player.bet} <span id="result_${index}" class="result">${player.result}</span></h2>`;
             const handDiv = document.createElement('div');
             handDiv.classList.add('hand');
             player.hand.forEach(card => {
@@ -243,8 +243,8 @@
     socket.on('playerBust', (player) => {
         const playerDiv = document.getElementById(`player_${player.id}`);
         if (playerDiv) {
-            playerDiv.querySelector('#result_' + player.id).innerText = 'Perdu';
-            playerDiv.querySelector('#result_' + player.id).classList.add('lose');
+            playerDiv.querySelector('.result').innerText = 'Perdu';
+            playerDiv.querySelector('.result').classList.add('lose');
         }
         updateRemainingPlayersCount();
     });
@@ -276,10 +276,15 @@
                 resultSpan.classList.add('tie');
             }
         });
-        document.getElementById('game').classList.add('hidden');
-        document.getElementById('betting').classList.remove('hidden');
         document.getElementById('remainingPlayersCount').innerText = '0';
         dingSound.play();
+    });
+
+    socket.on('clearResults', () => {
+        document.querySelectorAll('.result').forEach(resultSpan => {
+            resultSpan.innerText = '';
+            resultSpan.classList.remove('win', 'lose', 'tie');
+        });
     });
 
     function hit() {
