@@ -60,14 +60,8 @@ function calculateScore(hand) {
     return score;
 }
 
-function nextPlayerTurn() {
-    currentPlayerIndex++;
-    if (currentPlayerIndex < players.length) {
-        io.emit('highlightPlayer', players[currentPlayerIndex].id);
-        io.to(players[currentPlayerIndex].id).emit('yourTurn');
-    } else {
-        dealerTurn();
-    }
+function allPlayersDone() {
+    return players.every(player => player.result !== '');
 }
 
 io.on('connection', (socket) => {
@@ -139,7 +133,9 @@ io.on('connection', (socket) => {
             if (player.score > 21) {
                 player.result = 'lose';
                 io.emit('playerBust', player);
-                nextPlayerTurn();
+                if (allPlayersDone()) {
+                    dealerTurn();
+                }
             } else {
                 io.to(socket.id).emit('yourTurn');
             }
@@ -150,7 +146,10 @@ io.on('connection', (socket) => {
         const player = players.find(p => p.id === socket.id);
         if (player && players[currentPlayerIndex].id === socket.id) {
             console.log(`Player ${players[currentPlayerIndex].name} stands`);
-            nextPlayerTurn();
+            player.result = 'stand';
+            if (allPlayersDone()) {
+                dealerTurn();
+            }
         }
     });
 
@@ -167,8 +166,12 @@ io.on('connection', (socket) => {
             if (player.score > 21) {
                 player.result = 'lose';
                 io.emit('playerBust', player);
+            } else {
+                player.result = 'stand';
             }
-            nextPlayerTurn();
+            if (allPlayersDone()) {
+                dealerTurn();
+            }
         } else {
             io.to(socket.id).emit('error', 'Not enough balance to double the bet');
         }

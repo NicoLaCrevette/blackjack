@@ -74,6 +74,11 @@
             top: 10px;
             right: 10px;
         }
+        #remaining-players {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -101,9 +106,14 @@
 <div id="volume-control">
     <label for="volume">Volume:</label>
     <input type="range" id="volume" name="volume" min="0" max="100" value="50" oninput="adjustVolume(this.value)">
+    <button onclick="toggleMusic()">Jouer/Stop</button>
 </div>
 
-<audio id="background-music" loop autoplay>
+<div id="remaining-players">
+    <span id="remainingPlayersCount">0</span> joueurs restants
+</div>
+
+<audio id="background-music" loop>
     <source src="../caca.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
@@ -206,35 +216,14 @@
 
             playersDiv.appendChild(playerDiv);
         });
+
+        updateRemainingPlayersCount();
     });
 
-    socket.on('yourTurn', () => {
-        document.querySelectorAll('.player button').forEach(button => {
-            button.style.display = 'none';
-        });
-        const playerDiv = document.getElementById(`player_${socket.id}`);
-        if (playerDiv) {
-            playerDiv.querySelectorAll('button').forEach(button => {
-                button.style.display = 'inline-block';
-            });
-        }
-    });
-
-    socket.on('highlightPlayer', (playerId) => {
-        document.querySelectorAll('.player').forEach(playerDiv => {
-            playerDiv.classList.remove('active');
-            playerDiv.querySelectorAll('button').forEach(button => {
-                button.style.display = 'none';
-            });
-        });
-        const playerDiv = document.getElementById(`player_${playerId}`);
-        if (playerDiv) {
-            playerDiv.classList.add('active');
-            playerDiv.querySelectorAll('button').forEach(button => {
-                button.style.display = 'inline-block';
-            });
-        }
-    });
+    function updateRemainingPlayersCount() {
+        const remainingPlayers = document.querySelectorAll('#players .player').length - document.querySelectorAll('#players .player .win, #players .player .lose, #players .player .tie').length;
+        document.getElementById('remainingPlayersCount').innerText = remainingPlayers;
+    }
 
     socket.on('updatePlayer', (player) => {
         const playerDiv = document.getElementById(`player_${player.id}`);
@@ -246,6 +235,7 @@
             });
             playerDiv.querySelector('h2').innerText = `${player.name} - Score: ${player.score} - Mise: €${player.bet}`;
         }
+        updateRemainingPlayersCount();
     });
 
     socket.on('playerBust', (player) => {
@@ -254,18 +244,11 @@
             playerDiv.querySelector('#result_' + player.id).innerText = 'Perdu';
             playerDiv.querySelector('#result_' + player.id).classList.add('lose');
         }
+        updateRemainingPlayersCount();
     });
 
     socket.on('nextPlayer', (nextPlayerId) => {
-        document.querySelectorAll('.player button').forEach(button => {
-            button.style.display = 'none';
-        });
-        const nextPlayerDiv = document.getElementById(`player_${nextPlayerId}`);
-        if (nextPlayerDiv) {
-            nextPlayerDiv.querySelectorAll('button').forEach(button => {
-                button.style.display = 'inline-block';
-            });
-        }
+        updateRemainingPlayersCount();
     });
 
     socket.on('dealerTurn', (dealer) => {
@@ -294,6 +277,7 @@
         });
         document.getElementById('game').classList.add('hidden');
         document.getElementById('betting').classList.remove('hidden');
+        document.getElementById('remainingPlayersCount').innerText = '0';
         dingSound.play();
     });
 
@@ -320,6 +304,15 @@
 
     function adjustVolume(value) {
         document.getElementById('background-music').volume = value / 100;
+    }
+
+    function toggleMusic() {
+        const music = document.getElementById('background-music');
+        if (music.paused) {
+            music.play();
+        } else {
+            music.pause();
+        }
     }
 </script>
 
