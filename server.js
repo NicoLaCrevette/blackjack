@@ -60,10 +60,6 @@ function calculateScore(hand) {
     return score;
 }
 
-function allPlayersDone() {
-    return players.every(player => player.result !== '');
-}
-
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
