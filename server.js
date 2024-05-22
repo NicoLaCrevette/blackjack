@@ -183,12 +183,15 @@ io.on('connection', (socket) => {
         }
     });
 
-    async function dealerTurn() {
-        console.log('Dealer turn starts');
+    async function revealDealerCard() {
+        if (dealer.hidden) {
+            dealer.hidden = false;
+            io.emit('updateDealer', dealer);
+            await delay(2000);
+        }
         while (dealer.score < 17) {
             dealer.hand.push(deck.pop());
             dealer.score = calculateScore(dealer.hand);
-            dealer.hidden = false;
             io.emit('updateDealer', dealer);
             console.log(`Dealer draws a card. Score: ${dealer.score}`);
             await delay(2000);
@@ -208,7 +211,7 @@ io.on('connection', (socket) => {
                 nextPlayerTurn();
             }
         } else {
-            dealerTurn();
+            revealDealerCard();
         }
     }
 
